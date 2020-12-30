@@ -1,4 +1,4 @@
-#include "mpu.h"
+#include <MPU9250.h>
 
 MPU9250_Result_t MPU9250_Initialize(MPU9250_CONFIG_t *MPU9250_CONFIG){
     uint8_t cmdbuf[8] = {0};
@@ -230,16 +230,16 @@ MPU9250_Result_t MPU9250_Config(MPU9250_CONFIG_t *MPU9250_CONFIG){
     /* MPU9250_Set_Accel_Scale ---------------------------------------------------------*/
     cmdbuf[0] = MPU9250_CONFIG->ACCEL_SCALE;
     if(cmdbuf[0] == ACCEL_SCALE_2G){//2G
-        MPU9250_CONFIG->ARES = 2.0;
+        MPU9250_CONFIG->ARES = 2.0/MPU9250_ACC_SENS_FACTOR;
     }
     else if(cmdbuf[0] == ACCEL_SCALE_4G){//4G
-        MPU9250_CONFIG->ARES = 4.0;
+        MPU9250_CONFIG->ARES = 4.0/MPU9250_ACC_SENS_FACTOR;
     }
     else if(cmdbuf[0] == ACCEL_SCALE_8G){//8G
-        MPU9250_CONFIG->ARES = 8.0;
+        MPU9250_CONFIG->ARES = 8.0/MPU9250_ACC_SENS_FACTOR;
     }
     else if(cmdbuf[0] == ACCEL_SCALE_16G){//16G
-        MPU9250_CONFIG->ARES = 16.0;
+        MPU9250_CONFIG->ARES = 16.0/MPU9250_ACC_SENS_FACTOR;
     }
 
     cmdbuf[0] = MPU9250_ACCEL_CONFIG|0x80;
@@ -265,16 +265,16 @@ MPU9250_Result_t MPU9250_Config(MPU9250_CONFIG_t *MPU9250_CONFIG){
 
     cmdbuf[0] = MPU9250_CONFIG->GYRO_SCALE;
     if(cmdbuf[0] == GYRO_SCALE_250dps){//250dps
-        MPU9250_CONFIG->GRES = 250;
+        MPU9250_CONFIG->GRES = 2.0/MPU9250_GYRO_SENS_FACTOR;
     }
     else if(cmdbuf[0] == GYRO_SCALE_500dps){//500dps
-        MPU9250_CONFIG->GRES = 500;
+        MPU9250_CONFIG->GRES = 4.0/MPU9250_GYRO_SENS_FACTOR;
     }
     else if(cmdbuf[0] == GYRO_SCALE_1000dps){//1000dps
-        MPU9250_CONFIG->GRES = 1000;
+        MPU9250_CONFIG->GRES = 8.0/MPU9250_GYRO_SENS_FACTOR;
     }
     else if(cmdbuf[0] == GYRO_SCALE_2000dps){//2000dps
-        MPU9250_CONFIG->GRES = 2000;
+        MPU9250_CONFIG->GRES = 16.0/MPU9250_GYRO_SENS_FACTOR;
     }
 
     cmdbuf[0] = MPU9250_GYRO_CONFIG|0x80;
@@ -434,7 +434,7 @@ MPU9250_Result_t MPU9250_Config(MPU9250_CONFIG_t *MPU9250_CONFIG){
     return MPU9250_RESULT_OK;
 }
 
-MPU9250_Result_t MPU9250_Update7DOF(MPU9250_CONFIG_t *MPU9250_CONFIG,MPU9250_DATA_t *MPU9250_DATA){
+MPU9250_Result_t MPU9250_Update6DOF(MPU9250_CONFIG_t *MPU9250_CONFIG,MPU9250_DATA_t *MPU9250_DATA){
     uint8_t cmdbuf[15] = {0};
     HAL_StatusTypeDef res;
 
@@ -456,8 +456,8 @@ MPU9250_Result_t MPU9250_Update7DOF(MPU9250_CONFIG_t *MPU9250_CONFIG,MPU9250_DAT
     for(int i=0;i<3;i++){
         MPU9250_DATA->accel_raw[i] = (uint16_t)cmdbuf[2*i+1] << 8 | cmdbuf[2*i+2];
         MPU9250_DATA->gyro_raw[i] = (uint16_t)cmdbuf[2*i+9] << 8 | cmdbuf[2*i+10];
-        MPU9250_DATA->accel[i] = ((int16_t)MPU9250_DATA->accel_raw[i] * MPU9250_CONFIG->ARES)/32768.0 - MPU9250_CONFIG->ACCEL_OFFSET[i];
-        MPU9250_DATA->gyro[i] = ((int16_t)MPU9250_DATA->gyro_raw[i] * MPU9250_CONFIG->GRES)/32768.0 - MPU9250_CONFIG->GYRO_OFFSET[i];
+        MPU9250_DATA->accel[i] = ((int16_t)MPU9250_DATA->accel_raw[i] * MPU9250_CONFIG->ARES) - MPU9250_CONFIG->ACCEL_OFFSET[i];
+        MPU9250_DATA->gyro[i] = ((int16_t)MPU9250_DATA->gyro_raw[i] * MPU9250_CONFIG->GRES) - MPU9250_CONFIG->GYRO_OFFSET[i];
     }
     MPU9250_DATA->temperature_raw = ((uint16_t)cmdbuf[7] << 8) | cmdbuf[8];
     MPU9250_DATA->temperature = (MPU9250_DATA->temperature_raw/333.87) + 21.0;
@@ -558,7 +558,7 @@ MPU9250_Result_t MPU9250_Calibrate(MPU9250_CONFIG_t *MPU9250_CONFIG){
     }
 
     for(uint16_t i=0;i<CALIBRATE_TIMES;i++){//Take samples by the number of CALIBRATE_TIME
-        MPU9250_Update7DOF(MPU9250_CONFIG,&MPU9250_TEMP);
+        MPU9250_Update6DOF(MPU9250_CONFIG,&MPU9250_TEMP);
         ax_sum += MPU9250_TEMP.accel[0];
         ay_sum += MPU9250_TEMP.accel[1];
         az_sum += MPU9250_TEMP.accel[2] - 1;

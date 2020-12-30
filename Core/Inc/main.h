@@ -35,7 +35,7 @@ extern "C" {
 #include <stdio.h>
 //#include "hardware.h"
 #include "attitude.h"
-#include "mpu.h"
+#include <MPU9250.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -133,7 +133,7 @@ int main(void)
   while (1)
   {
       if (computeAttitude) {
-          MPU9250_Update7DOF(&mpu_config, &mpu_data);
+          MPU9250_Update6DOF(&mpu_config, &mpu_data);
           madgwickUpdate(&s, mpu_data.accel, mpu_data.gyro, 3);
           computeAngles(&s);
           if (num_computations >= 100) {

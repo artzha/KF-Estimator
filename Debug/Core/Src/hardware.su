@@ -1,6 +1,0 @@
-hardware.c:12:6:initMpu9250	24	static
-hardware.c:52:6:readAcceleration	32	static
-hardware.c:70:6:enableFIFO	24	static
-hardware.c:83:6:computeAdjustmentValues	24	static
-hardware.c:89:6:writeRegister	24	static
-hardware.c:94:6:readRegister	24	static

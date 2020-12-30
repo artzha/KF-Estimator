@@ -1,5 +1,0 @@
-attitude.c:13:6:attitudeInit	16	static
-attitude.c:22:6:attitudeUpdate	176	static
-attitude.c:119:6:computeAngles	64	static
-attitude.c:145:7:invSqrt	32	static
-attitude.c:156:6:madgwickUpdate	184	static
