@@ -1,0 +1,6 @@
+mpu.c:3:18:MPU9250_Initialize	40	static
+mpu.c:226:18:MPU9250_Config	48	static
+mpu.c:437:18:MPU9250_Update7DOF	64	static
+mpu.c:472:18:MPU9250_UpdateMAG	40	static
+mpu.c:526:18:MPU9250_GetMAG	48	static
+mpu.c:549:18:MPU9250_Calibrate	112	static
