@@ -14,7 +14,7 @@ void attitudeInit(AttitudeState *s) {
     s->beta = sqrt(3.0/4) * 3.14159265358979 * (1.0/180.0);
     s->q0 = 1.0;
     s->q1 = s->q2 = s->q3 = 0.0;
-    s->step = 0.000018;  // step for gradient descent found through testing
+    s->step = 0.0000175;  // step for gradient descent found through testing
 }
 
 void computeAngles(AttitudeState *s)
@@ -49,6 +49,44 @@ float invSqrt(float x) {
     y = y * (1.5f - (halfx * y * y));
     y = y * (1.5f - (halfx * y * y));
     return y;
+}
+
+void normalizeGravity(AttitudeState *s, float* acc) {
+    float q0, q1, q2, q3;
+    float q0q0, q1q1, q2q2, q3q3;
+    float q0q1, q0q2, q0q3;
+    float q1q2, q1q3;
+    float q2q3;
+    q0 = s->q0;
+    q1 = s->q1;
+    q2 = s->q2;
+    q3 = s->q3;
+    q0q0 = q0*q0;
+    q1q1 = q1*q1;
+    q2q2 = q2*q2;
+    q3q3 = q3*q3;
+    q0q1 = q0*q1;
+    q0q2 = q0*q2;
+    q0q3 = q0*q3;
+    q1q2 = q1*q2;
+    q1q3 = q1*q3;
+    q2q3 = q2*q3;
+
+    // rotate acceleration vector by quaternion orientation
+    // essentially rotating sensor frame into inertial frame
+    float r_acc[3];
+    r_acc[0] = q0q0*acc[0] + 2*q0q2*acc[2] - 2*q0q3*acc[1] +
+                    q1q1*acc[0] + 2*q1q2*acc[1] + 2*q1q3*acc[2] -
+                    q3q3*acc[0] - q2q2*acc[0];
+    r_acc[1] = 2*q1q2*acc[0] + q2q2*acc[1] + 2*q2q3*acc[2] +
+                2*q0q3*acc[0] - q3q3*acc[1] + q0q0*acc[1] -
+                2*q0q1*acc[2] - q1q1*acc[1];
+    r_acc[2] = 2*q1q3*acc[0] + 2*q2q3*acc[1] + q3q3*acc[2] -
+                2*q0q2*acc[0] - q2q2*acc[2] + 2*q0q1*acc[1] -
+                q1q1*acc[2] + q0q0*acc[2];
+    acc[0] = r_acc[0];
+    acc[1] = r_acc[1];
+    acc[2] = r_acc[2] - 1; // subtract out gravity component from acc
 }
 
 void madgwickUpdate(AttitudeState *s, float* acc, float* gyro, uint8_t sz) {

@@ -19,6 +19,8 @@ typedef struct AttitudeState {
 
 void attitudeInit(AttitudeState *s);
 
+void normalizeGravity(AttitudeState *s, float* acc);
+
 void madgwickUpdate(AttitudeState *s, float* acc, float* gyro, uint8_t sz);
 
 void computeAngles(AttitudeState *s);

@@ -5,7 +5,7 @@ old_roll = 0;
 old_yaw  = 0;
 old_pitch= 0;
 while 1
-    source = readline(s)
+    source = readline(s);
     if (strlength(source) > 0)
         orientation = split(source);
         roll = str2double(orientation(1));
