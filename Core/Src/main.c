@@ -18,6 +18,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -135,7 +136,7 @@ int main(void)
       if (computeAttitude) {
           MPU9250_Update6DOF(&mpu_config, &mpu_data);
           madgwickUpdate(&s, mpu_data.accel, mpu_data.gyro, 3);
-          computeAngles(&s);
+//          computeAngles(&s);
 //          if (num_computations >= 100) {
 //              printf("%i ", (int32_t) (s.roll));
 //              printf("%i ", (int32_t) (s.pitch));
@@ -146,7 +147,7 @@ int main(void)
               normalizeGravity(&s, mpu_data.accel);
               printf("%i ", (int32_t) (mpu_data.accel[0]*10000));
               printf("%i ", (int32_t) (mpu_data.accel[1]*10000));
-              printf("%i\r\n", (int32_t) (mpu_data.accel[2]*10000));
+              printf("%i ", (int32_t) (mpu_data.accel[2]*10000));
 //                printf("gyro x: %i, ", (int32_t) (mpu_data.gyro[0]*1000));
 //                printf("gyro y: %i, ", (int32_t) (mpu_data.gyro[1]*1000));
 //                printf("gyro z: %i \n\r", (int32_t) (mpu_data.gyro[2]*1000));

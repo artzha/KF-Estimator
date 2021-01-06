@@ -2,24 +2,24 @@
 s = serialport("/dev/tty.usbmodem11203", 115200);
 configureCallback(s, "off");
 configureTerminator(s,"CR/LF");
-NUM_SAMPLES = 1000;
 acc = zeros(NUM_SAMPLES, 3);
-i = 1;
 
-while i <= NUM_SAMPLES
-    source = readline(s);
-    if (size(source) > 0)
-        acceleration = split(source);
-        x = str2double(acceleration(1))/10000.0; % scale factor for decimal
-        y = str2double(acceleration(2))/10000.0;
-        z = str2double(acceleration(3))/10000.0;
-        acc(i, 1) = x;
-        acc(i, 2) = y;
-        acc(i, 3) = z;
-        i = i + 1;
-    end
+NUM_SAMPLES = 10000;
+BUFFER_SZ = NUM_SAMPLES*30;
+% Get data from serial buffer
+buffer = read(s, BUFFER_SZ, "string");
+data = split(buffer, " ");
+
+j = 1;
+for i = 1:3:uint32(size(data, 1)/3)
+   x = str2double(data(i+0))/10000.0;
+   y = str2double(data(i+1))/10000.0;
+   z = str2double(data(i+2))/10000.0;
+   acc(j, 1) = x;
+   acc(j, 2) = y;
+   acc(j, 3) = z;
+   j = j + 1;
 end
-
 save acc_samples.dat acc -ascii
 
 %% Part 2 fit points

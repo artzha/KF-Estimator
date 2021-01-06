@@ -28,6 +28,11 @@ endif
 
 -include ../makefile.defs
 
+BUILD_ARTIFACT_NAME := KF-Estimator
+BUILD_ARTIFACT_EXTENSION := elf
+BUILD_ARTIFACT_PREFIX := 
+BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME).$(BUILD_ARTIFACT_EXTENSION)
+
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
 KF-Estimator.elf \
@@ -43,11 +48,14 @@ KF-Estimator.bin \
 
 
 # All Target
-all: KF-Estimator.elf secondary-outputs
+all: main-build
+
+# Main-build Target
+main-build: KF-Estimator.elf secondary-outputs
 
 # Tool invocations
 KF-Estimator.elf: $(OBJS) $(USER_OBJS) /Users/arthur/Documents/MASA/KF-Estimator/STM32F446RETX_FLASH.ld
-	arm-none-eabi-gcc -o "KF-Estimator.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/arthur/Documents/MASA/KF-Estimator/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="KF-Estimator.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "KF-Estimator.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/arthur/Documents/MASA/KF-Estimator/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="KF-Estimator.map" -Wl,--gc-sections -static -L"/Users/arthur/Documents/MASA/KF-Estimator/DSP/Lib/GCC" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -73,7 +81,14 @@ clean:
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
 
-.PHONY: all clean dependents
+fail-specified-linker-script-missing:
+	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
+	@exit 2
+
+warn-no-linker-script-specified:
+	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
+
+.PHONY: all clean dependents fail-specified-linker-script-missing warn-no-linker-script-specified
 .SECONDARY:
 
 -include ../makefile.targets

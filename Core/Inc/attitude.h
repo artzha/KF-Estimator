@@ -7,7 +7,9 @@
 
 #ifndef INC_ATTITUDE_H_
 #define INC_ATTITUDE_H_
+#define ARM_MATH_CM4
 
+#include "arm_math.h"
 #include <stdint.h>
 
 typedef struct AttitudeState {
@@ -15,7 +17,9 @@ typedef struct AttitudeState {
     float q0, q1, q2, q3;
     double roll, pitch, yaw;
     float invSampleFreq;
+    arm_matrix_instance_f32 kf_state;
 } AttitudeState;
+void testDotProduct();
 
 void attitudeInit(AttitudeState *s);
 

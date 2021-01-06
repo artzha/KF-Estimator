@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="com.arm.eclipse.build.config.baremetal.exe.debug.base.var.arm_compiler_5-5.1602530321">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.arm.eclipse.build.config.baremetal.exe.debug.base.var.arm_compiler_5-5.1602530321" moduleId="org.eclipse.cdt.core.settings" name="Debug">
+				<externalSettings/>
+				<extensions/>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="axf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="clean" description="" errorParsers="" id="com.arm.eclipse.build.config.baremetal.exe.debug.base.var.arm_compiler_5-5.1602530321" name="Debug" parent="com.arm.eclipse.build.config.baremetal.exe.debug.base.var.arm_compiler_5-5.1602530321">
+					<folderInfo id="com.arm.eclipse.build.config.baremetal.exe.debug.base.var.arm_compiler_5-5.1602530321." name="/" resourcePath="">
+						<toolChain errorParsers="" id="com.arm.toolchain.v6.base.var.arm_compiler_6-6.2068070287" name="ARM Compiler 6">
+							<option defaultValue="com.arm.tool.c.compiler.v6.base.options.debug.level.std" id="com.arm.toolchain.v6.base.options.debug.level.1499740772" name="Debug Level" superClass="com.arm.toolchain.v6.base.options.debug.level" useByScannerDiscovery="false" valueType="enumerated"/>
+							<option id="com.arm.toolchain.v6.base.options.target.cpu_fpu.1353770567" superClass="com.arm.toolchain.v6.base.options.target.cpu_fpu" useByScannerDiscovery="false" value="Cortex-A5.VFPv4.Neon" valueType="string"/>
+							<option id="com.arm.toolchain.v6.base.options.floatabi.1576425190" name="Float ABI" superClass="com.arm.toolchain.v6.base.options.floatabi" useByScannerDiscovery="false" value="com.arm.tool.c.compiler.v6.base.option.floatabi.hard" valueType="enumerated"/>
+							<option id="com.arm.toolchain.v6.base.options.inst.1967567497" name="Instruction set" superClass="com.arm.toolchain.v6.base.options.inst" useByScannerDiscovery="false" value="com.arm.tool.c.compiler.v6.base.option.inst.arm" valueType="enumerated"/>
+							<option id="com.arm.toolchain.v6.base.options.endian.245086353" name="Byte order" superClass="com.arm.toolchain.v6.base.options.endian" useByScannerDiscovery="false" value="com.arm.tool.c.compiler.v6.base.option.endian.little" valueType="enumerated"/>
+							<targetPlatform id="com.arm.toolchain.v6.base.var.arm_compiler_6-6.2068070287.748935968" name=""/>
+							<builder buildPath="${workspace_loc:/DspLibTest_FVP_A5}/Debug" errorParsers="" id="org.eclipse.cdt.build.core.internal.builder.1442612646" keepEnvironmentInBuildfile="false" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="com.arm.eclipse.build.config.baremetal.exe.release.base.var.arm_compiler_5-5.233016572">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.arm.eclipse.build.config.baremetal.exe.release.base.var.arm_compiler_5-5.233016572" moduleId="org.eclipse.cdt.core.settings" name="Release">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="axf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="clean" description="" id="com.arm.eclipse.build.config.baremetal.exe.release.base.var.arm_compiler_5-5.233016572" name="Release" parent="com.arm.eclipse.build.config.baremetal.exe.release.base.var.arm_compiler_5-5">
+					<folderInfo id="com.arm.eclipse.build.config.baremetal.exe.release.base.var.arm_compiler_5-5.233016572." name="/" resourcePath="">
+						<toolChain id="com.arm.toolchain.baremetal.exe.release.base.var.arm_compiler_5-5.734138071" name="ARM Compiler 5" superClass="com.arm.toolchain.baremetal.exe.release.base.var.arm_compiler_5-5">
+							<option id="com.arm.toolchain.ac5.option.target.cpu_fpu.1203405248" superClass="com.arm.toolchain.ac5.option.target.cpu_fpu" value="Cortex-A5.VFPv4_D16" valueType="string"/>
+							<option id="com.arm.toolchain.ac5.option.endian.1245571568" name="Byte order" superClass="com.arm.toolchain.ac5.option.endian" value="com.arm.tool.c.compiler.v6.base.option.endian.little" valueType="enumerated"/>
+							<targetPlatform id="com.arm.eclipse.build.config.baremetal.exe.release.base.var.arm_compiler_5-5.233016572..1477794308" name=""/>
+							<builder buildPath="${workspace_loc:/DspLibTest_FVP_A5}/Release" id="com.arm.toolchain.baremetal.builder.930103949" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="com.arm.toolchain.baremetal.builder"/>
+							<tool id="com.arm.tool.c.compiler.baremetal.exe.release.base.var.arm_compiler_5-5.1823194949" name="ARM C Compiler 5" superClass="com.arm.tool.c.compiler.baremetal.exe.release.base.var.arm_compiler_5-5">
+								<option defaultValue="com.arm.tool.c.compiler.option.optlevel.high" id="com.arm.tool.c.compiler.baremetal.exe.release.base.option.opt.base.var.arm_compiler_5-5.320429792" name="Optimization level" superClass="com.arm.tool.c.compiler.baremetal.exe.release.base.option.opt.base.var.arm_compiler_5-5" useByScannerDiscovery="true" valueType="enumerated"/>
+								<option id="com.arm.tool.c.compiler.option.targetcpu.192863031" name="Target CPU (--cpu)" superClass="com.arm.tool.c.compiler.option.targetcpu" useByScannerDiscovery="true" value="Cortex-A5.vfp" valueType="string"/>
+								<option id="com.arm.tool.c.compiler.option.endian.1518401940" name="Byte order" superClass="com.arm.tool.c.compiler.option.endian" useByScannerDiscovery="true" value="com.arm.tool.c.compiler.v6.base.option.endian.little" valueType="enumerated"/>
+								<option id="com.arm.tool.c.compiler.option.implicit.defmac.152941472" name="Implicit Define macros" superClass="com.arm.tool.c.compiler.option.implicit.defmac" useByScannerDiscovery="true" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="_RTE_"/>
+									<listOptionValue builtIn="false" value="ARMCA5"/>
+								</option>
+								<option id="com.arm.tool.c.compiler.option.implicit.incpath.1676235016" name="Implicit Include paths" superClass="com.arm.tool.c.compiler.option.implicit.incpath" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/Core_A/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Source&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Source/GCC&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Template&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/Device/ARM/ARMCA5/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE/CMSIS&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE/Device/ARMCA5&quot;"/>
+								</option>
+								<option id="com.arm.tool.c.compile.option.lang.1707234128" name="Source language mode" superClass="com.arm.tool.c.compile.option.lang" useByScannerDiscovery="true" value="com.arm.tool.c.compile.option.lang.c99" valueType="enumerated"/>
+								<option id="com.arm.tool.c.compiler.option.implicit.flags.1104849747" name="Implicit other flags" superClass="com.arm.tool.c.compiler.option.implicit.flags" useByScannerDiscovery="true"/>
+								<inputType id="com.arm.tool.c.compiler.input.537702806" superClass="com.arm.tool.c.compiler.input"/>
+								<inputType id="com.arm.tool.cpp.compiler.input.869296571" superClass="com.arm.tool.cpp.compiler.input"/>
+							</tool>
+							<tool id="com.arm.tool.cpp.compiler.baremetal.exe.release.base.var.arm_compiler_5-5.1418884631" name="ARM C++ Compiler 5" superClass="com.arm.tool.cpp.compiler.baremetal.exe.release.base.var.arm_compiler_5-5">
+								<option defaultValue="com.arm.tool.c.compiler.option.optlevel.high" id="com.arm.tool.cpp.compiler.baremetal.exe.release.base.option.opt.base.var.arm_compiler_5-5.842395364" name="Optimization level" superClass="com.arm.tool.cpp.compiler.baremetal.exe.release.base.option.opt.base.var.arm_compiler_5-5" valueType="enumerated"/>
+								<option id="com.arm.tool.c.compiler.option.implicit.defmac.412004561" name="Implicit Define macros" superClass="com.arm.tool.c.compiler.option.implicit.defmac" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="_RTE_"/>
+									<listOptionValue builtIn="false" value="ARMCA5"/>
+								</option>
+								<option id="com.arm.tool.c.compiler.option.implicit.incpath.1063654039" name="Implicit Include paths" superClass="com.arm.tool.c.compiler.option.implicit.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/Core_A/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Source&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Source/GCC&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Template&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/Device/ARM/ARMCA5/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE/CMSIS&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE/Device/ARMCA5&quot;"/>
+								</option>
+								<option id="com.arm.tool.c.compiler.option.implicit.flags.1346261273" name="Implicit other flags" superClass="com.arm.tool.c.compiler.option.implicit.flags"/>
+							</tool>
+							<tool id="com.arm.tool.assembler.base.var.arm_compiler_5-5.734517429" name="ARM Assembler 5" superClass="com.arm.tool.assembler.base.var.arm_compiler_5-5">
+								<option id="com.arm.tool.assembler.option.cpu.1303999496" name="Target CPU (--cpu)" superClass="com.arm.tool.assembler.option.cpu" useByScannerDiscovery="true" value="Cortex-A5.vfp" valueType="string"/>
+								<option id="com.arm.tool.assembler.option.endian.1967937164" name="Byte order" superClass="com.arm.tool.assembler.option.endian" useByScannerDiscovery="true" value="com.arm.tool.c.compiler.v6.base.option.endian.little" valueType="enumerated"/>
+								<option id="com.arm.tool.assembler.option.implicit.predefine.1389120685" name="Implicit Predefines" superClass="com.arm.tool.assembler.option.implicit.predefine" valueType="stringList">
+									<listOptionValue builtIn="false" value="_RTE_ SETA 1"/>
+									<listOptionValue builtIn="false" value="ARMCA5 SETA 1"/>
+								</option>
+								<option id="com.arm.tool.assembler.option.implicit.incpath.913863200" name="Implicit Include paths" superClass="com.arm.tool.assembler.option.implicit.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/Core_A/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Source&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Source/GCC&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/CMSIS/RTOS2/RTX/Template&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${cmsis_pack_root}/ARM/CMSIS/5.5.1/Device/ARM/ARMCA5/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE/CMSIS&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}/RTE/Device/ARMCA5&quot;"/>
+								</option>
+								<inputType id="com.arm.tool.assembler.input.875241965" superClass="com.arm.tool.assembler.input"/>
+							</tool>
+							<tool id="com.arm.tool.c.linker.base.var.arm_compiler_5-5.1003890971" name="ARM Linker 5" superClass="com.arm.tool.c.linker.base.var.arm_compiler_5-5">
+								<option id="com.arm.tool.c.linker.option.cpu.1931299256" name="Target CPU (--cpu)" superClass="com.arm.tool.c.linker.option.cpu" useByScannerDiscovery="true" value="Cortex-A5.vfp" valueType="string"/>
+								<option id="com.arm.tool.c.linker.option.scatter.456779995" name="Scatter file (--scatter)" superClass="com.arm.tool.c.linker.option.scatter" value="${workspace_loc:/${ProjName}}/RTE/Device/ARMCA5/ARMCA5.sct" valueType="string"/>
+								<option id="com.arm.tool.c.linker.option.entry.1297402141" name="Image entry point (--entry)" superClass="com.arm.tool.c.linker.option.entry" value="Vectors" valueType="string"/>
+							</tool>
+							<tool id="com.arm.tool.librarian.base.var.arm_compiler_5-5.769289600" name="ARM Librarian 5" superClass="com.arm.tool.librarian.base.var.arm_compiler_5-5"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Sources/test_src/main.c|Sources/DSP_src/CommonTables/CommonTables.c|Sources/reflibs_src/FilteringFunctions/FilteringFunctions.c|Sources/reflibs_src/HelperFunctions/HelperFunctions.c|Sources/reflibs_src/Intrinsics/Intrinsics_.c|Sources/reflibs_src/MatrixFunctions/MatrixFunctions.c|Sources/reflibs_src/StatisticsFunctions/StatisticsFunctions.c|Sources/reflibs_src/SupportFunctions/SupportFunctions.c|Sources/reflibs_src/FastMathFunctions/FastMathFunctions.c|Sources/reflibs_src/ControllerFunctions/ControllerFunctions.c|Sources/reflibs_src/ComplexMathFunctions/ComplexMathFunctions.c|Sources/reflibs_src/BasicMathFunctions/BasicMathFunctions.c|Sources/DSP_src/SupportFunctions/SupportFunctions.c|Sources/DSP_src/StatisticsFunctions/StatisticsFunctions.c|Sources/DSP_src/MatrixFunctions/MatrixFunctions.c|Sources/DSP_src/FilteringFunctions/FilteringFunctions.c|Sources/DSP_src/FastMathFunctions/FastMathFunctions.c|Sources/DSP_src/ControllerFunctions/ControllerFunctions.c|Sources/DSP_src/ComplexMathFunctions/ComplexMathFunctions.c|Sources/DSP_src/BasicMathFunctions/BasicMathFunctions.c|Sources/reflibs_src/TransformFunctions|Sources/DSP_src/CommonTables/arm_const_structs.c|Sources/test_src/transform_tests|Sources/DSP_src/TransformFunctions" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="com.arm.cmsis.project">
+		<rteConfig name="DspLibTest_FVP_A5.rteconfig"/>
+		<toolChainAdapter id="com.arm.cmsis.pack.build.armcc5.Armcc5ToolChainAdapter" name="Adapter for ARM C/C++ 5.x and 6.x toolchains"/>
+		<device Dcore="Cortex-A5" DcoreVersion="r0p1" Dendian="Little-endian" Dfamily="ARM Cortex A5" Dfpu="DP_FPU" Dmpu="MPU" Dname="ARMCA5" Dvendor="ARM:82" info="ARM , 2 MB RAM, 2 MB ROM" url="http://www.keil.com/dd2/arm/armca5"/>
+		<files>
+			<file name="RTE/Device/ARMCA5/ARMCA5.sct" version="1.0.0"/>
+			<file name="RTE/Device/ARMCA5/mem_ARMCA5.h" version="1.0.0"/>
+			<file name="RTE/Device/ARMCA5/mmu_ARMCA5.c" version="1.0.0"/>
+			<file name="RTE/Device/ARMCA5/system_ARMCA5.c" version="1.0.1"/>
+			<file name="RTE/CMSIS/RTX_Config.c" version="5.1.0"/>
+			<file name="RTE/Device/ARMCA5/startup_ARMCA5.c" version="1.0.0"/>
+			<file name="RTE/CMSIS/RTX_Config.h" version="5.5.0"/>
+			<file name="RTE/CMSIS/handlers.c" version="5.1.0"/>
+			<file name="RTE/Device/ARMCA5/system_ARMCA5.h" version="1.0.0"/>
+		</files>
+	</storageModule>
+	<storageModule moduleId="com.arm.projectSettings" version="5.25"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="DspLibTest_FVP_A5.null.368084077" name="DspLibTest_FVP_A5"/>
+	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/DspLibTest_FVP_A5"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/DspLibTest_FVP_A5"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+</cproject>
