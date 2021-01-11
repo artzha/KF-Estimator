@@ -8,49 +8,193 @@
 
 #define betaDef         0.1 // 2 * proportional gain
 
-void testDotProduct() {
-    float32_t srcA_buf_f32[32] =
-    {
-      -0.4325648115282207,  -1.6655843782380970,  0.1253323064748307,
-       0.2876764203585489,  -1.1464713506814637,  1.1909154656429988,
-       1.1891642016521031,  -0.0376332765933176,  0.3272923614086541,
-       0.1746391428209245,  -0.1867085776814394,  0.7257905482933027,
-      -0.5883165430141887,   2.1831858181971011, -0.1363958830865957,
-       0.1139313135208096,   1.0667682113591888,  0.0592814605236053,
-      -0.0956484054836690,  -0.8323494636500225,  0.2944108163926404,
-      -1.3361818579378040,   0.7143245518189522,  1.6235620644462707,
-      -0.6917757017022868,   0.8579966728282626,  1.2540014216025324,
-      -1.5937295764474768,  -1.4409644319010200,  0.5711476236581780,
-      -0.3998855777153632,   0.6899973754643451
-    };
-
-    /* ----------------------------------------------------------------------
-    ** Test input data of srcB for blockSize 32
-    ** ------------------------------------------------------------------- */
-    float32_t srcB_buf_f32[32] =
-    {
-       1.7491401329284098,  0.1325982188803279,   0.3252281811989881,
-      -0.7938091410349637,  0.3149236145048914,  -0.5272704888029532,
-       0.9322666565031119,  1.1646643544607362,  -2.0456694357357357,
-      -0.6443728590041911,  1.7410657940825480,   0.4867684246821860,
-       1.0488288293660140,  1.4885752747099299,   1.2705014969484090,
-      -1.8561241921210170,  2.1343209047321410,   1.4358467535865909,
-      -0.9173023332875400, -1.1060770780029008,   0.8105708062681296,
-       0.6985430696369063, -0.4015827425012831,   1.2687512030669628,
-      -0.7836083053674872,  0.2132664971465569,   0.7878984786088954,
-       0.8966819356782295, -0.1869172943544062,   1.0131816724341454,
-       0.2484350696132857,  0.0596083377937976
-    };
-    float32_t multOutput[32];
-    arm_mult_f32(srcA_buf_f32, srcB_buf_f32, multOutput, 32);
-}
-
-void attitudeInit(AttitudeState *s) {
+void attitudeInit(AttitudeState *s, KalmanState* kf) {
     // gyroscope drift estimated to be 1 deg/s
     s->beta = sqrt(3.0/4) * 3.14159265358979 * (1.0/180.0);
     s->q0 = 1.0;
     s->q1 = s->q2 = s->q3 = 0.0;
     s->step = 0.0000175;  // step for gradient descent found through testing
+    initKFMatrices(kf);
+}
+
+void initKFMatrices(KalmanState* kf) {
+    /*
+    * Kalman Filter array is 3 rows
+    *  Each row represents an axis
+    *  Each column represents x1, x2, x3 for their respective axis
+    */
+    kf->time = 0.001; // sample rate (s)
+    float32_t t = kf->time;
+    float32_t t2= t*t;
+    float32_t t2d2      = t2/2.0; //precompute
+    float32_t t4d4      = t2d2*t2d2;
+    float32_t t3d2      = t2d2*t;
+
+    // Stores state of current axis
+    for (uint8_t i = 0; i < X_MAT_SZ; ++i) {
+        kf->x_mat[i] = 0;
+    }
+    arm_mat_init_f32(&kf->X, X_MAT_SZ, 1, kf->x_mat);
+
+    // A Matrix
+    for (uint8_t i = 0; i < A_MAT_SZ; ++i) {
+        kf->a_mat[i] = 0;
+    }
+    kf->a_mat[0] = 1;
+    kf->a_mat[1] = t;
+    kf->a_mat[2] = -t2d2;
+    kf->a_mat[4] = 1;
+    kf->a_mat[5] = -t;
+    kf->a_mat[8] = 1;
+    arm_mat_init_f32(&kf->A, 3, 3, kf->a_mat);
+
+    // G Matrix
+    kf->g_mat[0] = t2d2;
+    kf->g_mat[1] = t;
+    kf->g_mat[2] = 0;
+    arm_mat_init_f32(&kf->G, G_MAT_SZ, 1, kf->g_mat);
+
+    // H Matrix
+    kf->h_mat[0] = 1;
+    kf->h_mat[1] = 0;
+    kf->h_mat[2] = 0;
+    arm_mat_init_f32(&kf->H, 1, H_MAT_SZ, kf->h_mat);
+
+    // Z Matrix pos of current axis
+    for (uint8_t i = 0; i < Z_MAT_SZ; ++i) {
+        kf->z_mat[i] = 0;
+    }
+    arm_mat_init_f32(&kf->Z, 1, 1, kf->z_mat);
+
+    // W Matrix
+    kf->w_mat[0] = t2d2;
+    kf->w_mat[1] = t;
+    kf->w_mat[2] = 1;
+    arm_mat_init_f32(&kf->W, 3, 1, kf->w_mat);
+
+    // V Matrix measured accelerometer various for current axis
+    kf->v_mat[0] = 0.00199982;
+    kf->v_mat[1] = 0.00213174;
+    kf->v_mat[2] = 0.00380232;
+    arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat);
+
+    // P Matrix initially position is known to be true
+    for(uint8_t i = 0; i < 9; ++i) {
+        kf->p_mat[i] = 0;
+    }
+    arm_mat_init_f32(&kf->P, 3, 3, kf->p_mat);
+
+    // Q Matrix constant
+    for (uint8_t i = 0; i < Q_MAT_SZ; ++i) {
+        kf->q_mat[i] = 0;
+    }
+    kf->q_mat[0] = t4d4;
+    kf->q_mat[1] = t3d2;
+    kf->q_mat[3] = t3d2;
+    kf->q_mat[4] = t2;
+    arm_mat_init_f32(&kf->Q, 3, 3, kf->q_mat);
+    arm_mat_scale_f32(&kf->Q, ESTIMATE_COVAR, &kf->Q);
+
+    // R Matrix
+    kf->r_mat[0] = OBSERVATION_COVAR;
+    arm_mat_init_f32(&kf->R, 1, 1, kf->r_mat);
+
+    // Identity Matrix
+    for (uint8_t i = 0; i < I_MAT_SZ; ++i) {
+        kf->i_mat[i] = 0;
+    }
+    kf->i_mat[0] = 1;
+    kf->i_mat[4] = 1;
+    kf->i_mat[8] = 1;
+    arm_mat_init_f32(&kf->I, 3, 3, kf->i_mat);
+}
+
+void kfUpdate(KalmanState *kf, float* acc) {
+    // Update Equations
+    float32_t auxA_3_3_mat[9] = {0};
+    float32_t auxB_3_3_mat[9] = {0};
+    float32_t auxC_3_3_mat[9] = {0};
+    float32_t auxP_3_3_mat[9] = {0};
+    float32_t auxA_3_1_mat[3] = {0};
+    float32_t auxB_3_1_mat[3] = {0};
+    float32_t auxC_3_1_mat[3] = {0};
+    float32_t auxD_3_1_mat[3] = {0};
+    float32_t auxX_3_1_mat[3] = {0};
+    float32_t auxK_3_1_mat[3] = {0};
+    float32_t auxA_1_1_mat[1] = {0};
+    float32_t auxB_1_1_mat[1] = {0};
+    float32_t auxC_1_1_mat[1] = {0};
+    arm_matrix_instance_f32 auxA_3_3, auxB_3_3, auxC_3_3;
+    arm_matrix_instance_f32 auxA_3_1, auxB_3_1, auxC_3_1, auxD_3_1;
+    arm_matrix_instance_f32 auxA_1_1, auxB_1_1, auxC_1_1;
+    arm_matrix_instance_f32 auxX_3_1, auxP_3_3;
+    arm_matrix_instance_f32 auxK_3_1;
+    arm_mat_init_f32(&auxA_3_3, 3, 3, auxA_3_3_mat);
+    arm_mat_init_f32(&auxB_3_3, 3, 3, auxB_3_3_mat);
+    arm_mat_init_f32(&auxC_3_3, 3, 3, auxC_3_3_mat);
+    arm_mat_init_f32(&auxP_3_3, 3, 3, auxP_3_3_mat);
+    arm_mat_init_f32(&auxA_3_1, 3, 1, auxA_3_1_mat);
+    arm_mat_init_f32(&auxB_3_1, 3, 1, auxB_3_1_mat);
+    arm_mat_init_f32(&auxC_3_1, 3, 1, auxC_3_1_mat);
+    arm_mat_init_f32(&auxD_3_1, 3, 1, auxD_3_1_mat);
+    arm_mat_init_f32(&auxX_3_1, 3, 1, auxX_3_1_mat);
+    arm_mat_init_f32(&auxK_3_1, 3, 1, auxK_3_1_mat);
+    arm_mat_init_f32(&auxA_1_1, 1, 1, auxA_1_1_mat);
+    arm_mat_init_f32(&auxB_1_1, 1, 1, auxB_1_1_mat);
+    arm_mat_init_f32(&auxC_1_1, 1, 1, auxC_1_1_mat);
+    for (uint8_t i = 0; i < 3; ++i) {
+        uint8_t X_mat_offset = i*3;
+        // Predict Equations
+
+        /* Set current state to respective coordinate axis */
+        arm_mat_init_f32(&kf->X, 3, 1, kf->x_mat+X_mat_offset);
+        arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat+i);
+
+        /* G*ak: Update measured acceleration disturbance matrix */
+        arm_mat_scale_f32(&kf->G, acc[i], &auxA_3_1); // G*ak 3x1
+
+        /* A*x_k-1k-1: Update process matrix */
+        arm_mat_mult_f32(&kf->A, &kf->X, &auxB_3_1); // A*X 3x1
+
+        /* sigma*W_k: Update position measurement noise matrix */
+        arm_mat_scale_f32(&kf->W, ESTIMATE_STATE_VAR, &auxC_3_1); // W*sigma 3x1
+
+        /* x_kk-1= A*x_k-1k-1 + G*ak + W */
+        arm_mat_add_f32(&auxB_3_1, &auxA_3_1, &auxD_3_1); // A*X + G*ak
+        arm_mat_add_f32(&auxD_3_1, &auxC_3_1, &auxX_3_1); //X = A*X + G*ak + W*sigma
+
+        /*P_kk-1= APA_T + Qk */
+        arm_mat_trans_f32(&kf->A, &auxA_3_3);       // A_t 3x3
+        arm_mat_mult_f32(&kf->P, &auxA_3_3, &auxB_3_3); // P*A_t
+        arm_mat_mult_f32(&kf->A, &auxB_3_3, &auxC_3_3); // A*P*A_t
+        arm_mat_add_f32(&auxC_3_3, &kf->Q, &auxP_3_3);  // P = A*P*A_t + Q 3x3
+
+        // Update Equations
+
+        /* Kalman gain: K = P_kk-1*Ht_k*S^-1_k */
+        arm_mat_trans_f32(&kf->H, &auxA_3_1);   // H_t
+        arm_mat_mult_f32(&auxP_3_3, &auxA_3_1, &auxB_3_1);   // PH_t 3x1
+
+        arm_mat_mult_f32(&kf->H, &auxB_3_1, &auxA_1_1); // HPH_t 1x1
+        arm_mat_add_f32(&auxA_1_1, &kf->R, &auxB_1_1); // S = HPH_t + R 1x1
+        arm_mat_inverse_f32(&auxB_1_1, &auxC_1_1); // S^-1
+
+        arm_mat_mult_f32(&auxA_3_1, &auxC_1_1, &auxC_3_1); // H_t * S^-1 3x1
+        arm_mat_mult_f32(&auxP_3_3, &auxC_3_1, &auxK_3_1); // K = P * H^t * S^-1
+
+        /* A posteriori state estimate */
+        arm_mat_mult_f32(&auxK_3_1, &kf->H, &auxA_3_3); // KH
+        arm_mat_sub_f32(&kf->I, &auxA_3_3, &auxB_3_3); // I-KH
+        arm_mat_mult_f32(&auxB_3_3, &auxX_3_1, &auxA_3_1); // (I-KH)*X
+
+        arm_mat_mult_f32(&auxA_3_1, &auxX_3_1, &auxB_3_1); // KHX
+        arm_mat_mult_f32(&auxK_3_1, &kf->V, &auxC_3_1); // Kv
+        arm_mat_add_f32(&auxA_3_1, &auxB_3_1, &auxD_3_1); // (I-KH)*X + KHX
+        arm_mat_add_f32(&auxD_3_1, &auxC_3_1, &kf->X); // (I-KH)*X + KHX + Kv
+
+        /* A posteriori estimate cov */
+        arm_mat_mult_f32(&auxB_3_3, &auxP_3_3, &kf->P); // (I-KH)*X
+    }
 }
 
 void computeAngles(AttitudeState *s)
@@ -123,18 +267,6 @@ void normalizeGravity(AttitudeState *s, float* acc) {
     acc[0] = r_acc[0];
     acc[1] = r_acc[1];
     acc[2] = r_acc[2] - 1; // subtract out gravity component from acc
-}
-
-void kfUpdate(AttitudeState *s, float* acc) {
-    arm_matrix_instance_f32 A;  // State
-    arm_matrix_instance_f32 G;  // Random Disturbance
-    arm_matrix_instance_f32 H;  // Observation Matrix (output)
-
-    uint32_t stateRows, stateCols;
-    stateRows = 3;
-    stateCols = 3;
-
-
 }
 
 void madgwickUpdate(AttitudeState *s, float* acc, float* gyro, uint8_t sz) {
