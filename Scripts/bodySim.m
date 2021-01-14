@@ -1,4 +1,4 @@
-s = serialport("/dev/tty.usbmodem11203", 115200);
+s = serialport("/dev/tty.usbmodem11303", 115200);
 configureCallback(s, "off");
 configureTerminator(s,"CR/LF");
 old_roll = 0;

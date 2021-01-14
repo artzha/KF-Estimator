@@ -1,10 +1,10 @@
 %% Part 1 sample points
-s = serialport("/dev/tty.usbmodem11203", 115200);
+s = serialport("/dev/tty.usbmodem11303", 115200);
 configureCallback(s, "off");
 configureTerminator(s,"CR/LF");
-acc = zeros(NUM_SAMPLES, 3);
 
 NUM_SAMPLES = 10000;
+acc = zeros(NUM_SAMPLES, 3);
 BUFFER_SZ = NUM_SAMPLES*30;
 % Get data from serial buffer
 buffer = read(s, BUFFER_SZ, "string");
@@ -24,9 +24,9 @@ save acc_samples.dat acc -ascii
 
 %% Part 2 fit points
 acc=load('acc_samples.dat');
-acc_x = acc(:,1);
-acc_y = acc(:,2);
-acc_z = acc(:,3);
+acc_x = acc(1:8000,1);
+acc_y = acc(1:8000,2);
+acc_z = acc(1:8000,3);
 
 figure(1);
 hold on
@@ -51,3 +51,14 @@ pdz = fitdist(acc_z, 'Normal')
 title("acceleration in z");
 xlabel("acceleration in gs");
 hold off
+
+%%
+acc=load('acc_samples.dat');
+acc_x = acc(1:8000,1);
+acc_y = acc(1:8000,2);
+acc_z = acc(1:8000,3);
+
+acc_x = acc_x - -0.00432859;
+t=linspace(1,5,8000);
+plot(t, acc_x);
+

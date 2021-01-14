@@ -12,20 +12,25 @@
 #include "arm_math.h"
 #include <stdint.h>
 
-#define ESTIMATE_STATE_VAR      0.1
-#define ESTIMATE_COVAR          0.1
-#define OBSERVATION_COVAR       0.01    // estimate of std dev for position meas
+#define Q_COVAR         0.0001
+#define R_COVAR         0.00005    // estimate of std dev for position meas
 #define A_MAT_SZ        9
 #define X_MAT_SZ        9
 #define G_MAT_SZ        3
 #define H_MAT_SZ        9
 #define Z_MAT_SZ        3
-#define W_MAT_SZ        3
+#define W_MAT_SZ        9
 #define V_MAT_SZ        3
 #define P_MAT_SZ        9
 #define Q_MAT_SZ        9
 #define R_MAT_SZ        1
 #define I_MAT_SZ        9
+#define ACC_X_BIAS      -0.00432859
+#define ACC_Y_BIAS      0.000365862
+#define ACC_Z_BIAS      0.00188605
+#define ACC_X_VAR       0.000006004
+#define ACC_Y_VAR       0.000004081
+#define ACC_Z_VAR       0.000013743
 
 typedef struct AttitudeState {
     float beta, step, filterBeta;

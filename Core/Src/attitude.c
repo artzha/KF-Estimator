@@ -45,13 +45,13 @@ void initKFMatrices(KalmanState* kf) {
     kf->a_mat[2] = -t2d2;
     kf->a_mat[4] = 1;
     kf->a_mat[5] = -t;
-    kf->a_mat[8] = 1;
+    kf->a_mat[8] = 0; // discard old acceleration reading
     arm_mat_init_f32(&kf->A, 3, 3, kf->a_mat);
 
     // G Matrix
-    kf->g_mat[0] = t2d2;
-    kf->g_mat[1] = t;
-    kf->g_mat[2] = 0;
+    kf->g_mat[0] = 0;
+    kf->g_mat[1] = 0;
+    kf->g_mat[2] = 1; // set acc equal to new acceleration reading
     arm_mat_init_f32(&kf->G, G_MAT_SZ, 1, kf->g_mat);
 
     // H Matrix
@@ -67,15 +67,19 @@ void initKFMatrices(KalmanState* kf) {
     arm_mat_init_f32(&kf->Z, 1, 1, kf->z_mat);
 
     // W Matrix
-    kf->w_mat[0] = t2d2;
-    kf->w_mat[1] = t;
-    kf->w_mat[2] = 1;
-    arm_mat_init_f32(&kf->W, 3, 1, kf->w_mat);
+    for (uint8_t i = 0; i < W_MAT_SZ; ++i) {
+        kf->w_mat[i] = 0;
+    }
+    kf->w_mat[2] = -ACC_X_BIAS;
+    kf->w_mat[5] = -ACC_Y_BIAS;
+    kf->w_mat[8] = -ACC_Z_BIAS;
+    arm_mat_init_f32(&kf->W, 3, 3, kf->w_mat);
 
     // V Matrix measured accelerometer various for current axis
-    kf->v_mat[0] = 0.00199982;
-    kf->v_mat[1] = 0.00213174;
-    kf->v_mat[2] = 0.00380232;
+    for (uint8_t i = 0; i < 3; ++i) kf->v_mat[i] = 0;
+    kf->v_mat[0] = ACC_X_VAR*t2d2;
+    kf->v_mat[1] = ACC_Y_VAR*t2d2;
+    kf->v_mat[2] = ACC_Z_VAR*t2d2;
     arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat);
 
     // P Matrix initially position is known to be true
@@ -93,10 +97,10 @@ void initKFMatrices(KalmanState* kf) {
     kf->q_mat[3] = t3d2;
     kf->q_mat[4] = t2;
     arm_mat_init_f32(&kf->Q, 3, 3, kf->q_mat);
-    arm_mat_scale_f32(&kf->Q, ESTIMATE_COVAR, &kf->Q);
+    arm_mat_scale_f32(&kf->Q, Q_COVAR, &kf->Q);
 
     // R Matrix
-    kf->r_mat[0] = OBSERVATION_COVAR;
+    kf->r_mat[0] = R_COVAR;
     arm_mat_init_f32(&kf->R, 1, 1, kf->r_mat);
 
     // Identity Matrix
@@ -149,15 +153,17 @@ void kfUpdate(KalmanState *kf, float* acc) {
         /* Set current state to respective coordinate axis */
         arm_mat_init_f32(&kf->X, 3, 1, kf->x_mat+X_mat_offset);
         arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat+i);
+        arm_mat_init_f32(&kf->W, 3, 1, kf->w_mat+X_mat_offset);
 
         /* G*ak: Update measured acceleration disturbance matrix */
-        arm_mat_scale_f32(&kf->G, acc[i], &auxA_3_1); // G*ak 3x1
+        // conversion for gs to m/s^2
+        arm_mat_scale_f32(&kf->G, acc[i]*9.80665, &auxA_3_1); // G*ak 3x1
 
         /* A*x_k-1k-1: Update process matrix */
         arm_mat_mult_f32(&kf->A, &kf->X, &auxB_3_1); // A*X 3x1
 
         /* sigma*W_k: Update position measurement noise matrix */
-        arm_mat_scale_f32(&kf->W, ESTIMATE_STATE_VAR, &auxC_3_1); // W*sigma 3x1
+        arm_mat_scale_f32(&kf->W, 1, &auxC_3_1); // W*1 3x1
 
         /* x_kk-1= A*x_k-1k-1 + G*ak + W */
         arm_mat_add_f32(&auxB_3_1, &auxA_3_1, &auxD_3_1); // A*X + G*ak
@@ -187,13 +193,13 @@ void kfUpdate(KalmanState *kf, float* acc) {
         arm_mat_sub_f32(&kf->I, &auxA_3_3, &auxB_3_3); // I-KH
         arm_mat_mult_f32(&auxB_3_3, &auxX_3_1, &auxA_3_1); // (I-KH)*X
 
-        arm_mat_mult_f32(&auxA_3_1, &auxX_3_1, &auxB_3_1); // KHX
+        arm_mat_mult_f32(&auxA_3_3, &auxX_3_1, &auxB_3_1); // KHX
         arm_mat_mult_f32(&auxK_3_1, &kf->V, &auxC_3_1); // Kv
         arm_mat_add_f32(&auxA_3_1, &auxB_3_1, &auxD_3_1); // (I-KH)*X + KHX
         arm_mat_add_f32(&auxD_3_1, &auxC_3_1, &kf->X); // (I-KH)*X + KHX + Kv
 
         /* A posteriori estimate cov */
-        arm_mat_mult_f32(&auxB_3_3, &auxP_3_3, &kf->P); // (I-KH)*X
+        arm_mat_mult_f32(&auxB_3_3, &auxP_3_3, &kf->P); // (I-KH)*P
     }
 }
 
