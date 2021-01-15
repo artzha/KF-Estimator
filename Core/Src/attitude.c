@@ -24,6 +24,12 @@ void initKFMatrices(KalmanState* kf) {
     *  Each column represents x1, x2, x3 for their respective axis
     */
     kf->time = 0.001; // sample rate (s)
+    kf->acc_var[0] = 0.000006004;
+    kf->acc_var[1] = 0.000004081;
+    kf->acc_var[2] = 0.000013743;
+    kf->acc_bias[0]= -0.00432859;
+    kf->acc_bias[1]= 0.000365862;
+    kf->acc_bias[2]= 0.00188605;
     float32_t t = kf->time;
     float32_t t2= t*t;
     float32_t t2d2      = t2/2.0; //precompute
@@ -34,30 +40,23 @@ void initKFMatrices(KalmanState* kf) {
     for (uint8_t i = 0; i < X_MAT_SZ; ++i) {
         kf->x_mat[i] = 0;
     }
-    arm_mat_init_f32(&kf->X, X_MAT_SZ, 1, kf->x_mat);
+    arm_mat_init_f32(&kf->X, 3, 2, kf->x_mat);
 
     // A Matrix
-    for (uint8_t i = 0; i < A_MAT_SZ; ++i) {
-        kf->a_mat[i] = 0;
-    }
     kf->a_mat[0] = 1;
     kf->a_mat[1] = t;
-    kf->a_mat[2] = -t2d2;
-    kf->a_mat[4] = 1;
-    kf->a_mat[5] = -t;
-    kf->a_mat[8] = 0; // discard old acceleration reading
-    arm_mat_init_f32(&kf->A, 3, 3, kf->a_mat);
+    kf->a_mat[2] = 0;
+    kf->a_mat[3] = 1;
+    arm_mat_init_f32(&kf->A, 2, 2, kf->a_mat);
 
     // G Matrix
-    kf->g_mat[0] = 0;
-    kf->g_mat[1] = 0;
-    kf->g_mat[2] = 1; // set acc equal to new acceleration reading
+    kf->g_mat[0] = t2d2;
+    kf->g_mat[1] = t;
     arm_mat_init_f32(&kf->G, G_MAT_SZ, 1, kf->g_mat);
 
     // H Matrix
     kf->h_mat[0] = 1;
     kf->h_mat[1] = 0;
-    kf->h_mat[2] = 0;
     arm_mat_init_f32(&kf->H, 1, H_MAT_SZ, kf->h_mat);
 
     // Z Matrix pos of current axis
@@ -70,23 +69,26 @@ void initKFMatrices(KalmanState* kf) {
     for (uint8_t i = 0; i < W_MAT_SZ; ++i) {
         kf->w_mat[i] = 0;
     }
-    kf->w_mat[2] = -ACC_X_BIAS;
-    kf->w_mat[5] = -ACC_Y_BIAS;
-    kf->w_mat[8] = -ACC_Z_BIAS;
-    arm_mat_init_f32(&kf->W, 3, 3, kf->w_mat);
+    kf->w_mat[0] = t2d2;
+    kf->w_mat[1] = t;
+    kf->w_mat[2] = t2d2;
+    kf->w_mat[3] = t;
+    kf->w_mat[4] = t2d2;
+    kf->w_mat[5] = t;
+    arm_mat_init_f32(&kf->W, 2, 1, kf->w_mat);
 
     // V Matrix measured accelerometer various for current axis
-    for (uint8_t i = 0; i < 3; ++i) kf->v_mat[i] = 0;
-    kf->v_mat[0] = ACC_X_VAR*t2d2;
-    kf->v_mat[1] = ACC_Y_VAR*t2d2;
-    kf->v_mat[2] = ACC_Z_VAR*t2d2;
+    for (uint8_t i = 0; i < V_MAT_SZ; ++i) kf->v_mat[i] = 0;
+//    kf->v_mat[0] = t2d2; // TODO replace if needed
+//    kf->v_mat[1] = t2d2;
+//    kf->v_mat[2] = t2d2;
     arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat);
 
     // P Matrix initially position is known to be true
-    for(uint8_t i = 0; i < 9; ++i) {
+    for(uint8_t i = 0; i < P_MAT_SZ; ++i) {
         kf->p_mat[i] = 0;
     }
-    arm_mat_init_f32(&kf->P, 3, 3, kf->p_mat);
+    arm_mat_init_f32(&kf->P, 2, 2, kf->p_mat);
 
     // Q Matrix constant
     for (uint8_t i = 0; i < Q_MAT_SZ; ++i) {
@@ -94,9 +96,9 @@ void initKFMatrices(KalmanState* kf) {
     }
     kf->q_mat[0] = t4d4;
     kf->q_mat[1] = t3d2;
-    kf->q_mat[3] = t3d2;
-    kf->q_mat[4] = t2;
-    arm_mat_init_f32(&kf->Q, 3, 3, kf->q_mat);
+    kf->q_mat[2] = t3d2;
+    kf->q_mat[3] = t2;
+    arm_mat_init_f32(&kf->Q, 2, 2, kf->q_mat);
     arm_mat_scale_f32(&kf->Q, Q_COVAR, &kf->Q);
 
     // R Matrix
@@ -108,98 +110,134 @@ void initKFMatrices(KalmanState* kf) {
         kf->i_mat[i] = 0;
     }
     kf->i_mat[0] = 1;
-    kf->i_mat[4] = 1;
-    kf->i_mat[8] = 1;
-    arm_mat_init_f32(&kf->I, 3, 3, kf->i_mat);
+    kf->i_mat[3] = 1;
+    arm_mat_init_f32(&kf->I, 2, 2, kf->i_mat);
+}
+
+/* code borrowed from ftp://ftp.taygeta.com/pub/c/boxmuller.c */
+float32_t box_muller(float32_t m, float32_t s)   /* normal random variate generator */
+{
+    /* mean m, standard deviation s */
+    float32_t x1, x2, w, _y1;
+    static float32_t y2;
+    static int use_last = 0;
+
+    if (use_last)               /* use value from previous call */
+    {
+        _y1 = y2;
+        use_last = 0;
+    }
+    else
+    {
+        do {
+            x1 = 2.0 * drand48() - 1.0;
+            x2 = 2.0 * drand48() - 1.0;
+            w = x1 * x1 + x2 * x2;
+        } while ( w >= 1.0 );
+
+        w = sqrt( (-2.0 * log( w ) ) / w );
+        _y1 = x1 * w;
+        y2 = x2 * w;
+        use_last = 1;
+    }
+
+    float32_t result = ( m + _y1 * s );
+
+    return result;
 }
 
 void kfUpdate(KalmanState *kf, float* acc) {
     // Update Equations
-    float32_t auxA_3_3_mat[9] = {0};
-    float32_t auxB_3_3_mat[9] = {0};
-    float32_t auxC_3_3_mat[9] = {0};
-    float32_t auxP_3_3_mat[9] = {0};
-    float32_t auxA_3_1_mat[3] = {0};
-    float32_t auxB_3_1_mat[3] = {0};
-    float32_t auxC_3_1_mat[3] = {0};
-    float32_t auxD_3_1_mat[3] = {0};
-    float32_t auxX_3_1_mat[3] = {0};
-    float32_t auxK_3_1_mat[3] = {0};
+    float32_t auxA_2_2_mat[4] = {0};
+    float32_t auxB_2_2_mat[4] = {0};
+    float32_t auxC_2_2_mat[4] = {0};
+    float32_t auxP_2_2_mat[4] = {0};
+    float32_t auxA_2_1_mat[2] = {0};
+    float32_t auxB_2_1_mat[2] = {0};
+    float32_t auxC_2_1_mat[2] = {0};
+    float32_t auxD_2_1_mat[2] = {0};
+    float32_t auxX_2_1_mat[2] = {0};
+    float32_t auxK_2_1_mat[2] = {0};
+    float32_t auxW_2_1_mat[2] = {0};
     float32_t auxA_1_1_mat[1] = {0};
     float32_t auxB_1_1_mat[1] = {0};
     float32_t auxC_1_1_mat[1] = {0};
-    arm_matrix_instance_f32 auxA_3_3, auxB_3_3, auxC_3_3;
-    arm_matrix_instance_f32 auxA_3_1, auxB_3_1, auxC_3_1, auxD_3_1;
+    arm_matrix_instance_f32 auxA_2_2, auxB_2_2, auxC_2_2;
+    arm_matrix_instance_f32 auxA_2_1, auxB_2_1, auxC_2_1, auxD_2_1;
     arm_matrix_instance_f32 auxA_1_1, auxB_1_1, auxC_1_1;
-    arm_matrix_instance_f32 auxX_3_1, auxP_3_3;
-    arm_matrix_instance_f32 auxK_3_1;
-    arm_mat_init_f32(&auxA_3_3, 3, 3, auxA_3_3_mat);
-    arm_mat_init_f32(&auxB_3_3, 3, 3, auxB_3_3_mat);
-    arm_mat_init_f32(&auxC_3_3, 3, 3, auxC_3_3_mat);
-    arm_mat_init_f32(&auxP_3_3, 3, 3, auxP_3_3_mat);
-    arm_mat_init_f32(&auxA_3_1, 3, 1, auxA_3_1_mat);
-    arm_mat_init_f32(&auxB_3_1, 3, 1, auxB_3_1_mat);
-    arm_mat_init_f32(&auxC_3_1, 3, 1, auxC_3_1_mat);
-    arm_mat_init_f32(&auxD_3_1, 3, 1, auxD_3_1_mat);
-    arm_mat_init_f32(&auxX_3_1, 3, 1, auxX_3_1_mat);
-    arm_mat_init_f32(&auxK_3_1, 3, 1, auxK_3_1_mat);
+    arm_matrix_instance_f32 auxX_2_1, auxP_2_2;
+    arm_matrix_instance_f32 auxK_2_1;
+    arm_matrix_instance_f32 auxW_2_1;
+    arm_mat_init_f32(&auxA_2_2, 2, 2, auxA_2_2_mat);
+    arm_mat_init_f32(&auxB_2_2, 2, 2, auxB_2_2_mat);
+    arm_mat_init_f32(&auxC_2_2, 2, 2, auxC_2_2_mat);
+    arm_mat_init_f32(&auxP_2_2, 2, 2, auxP_2_2_mat);
+    arm_mat_init_f32(&auxA_2_1, 2, 1, auxA_2_1_mat);
+    arm_mat_init_f32(&auxB_2_1, 2, 1, auxB_2_1_mat);
+    arm_mat_init_f32(&auxC_2_1, 2, 1, auxC_2_1_mat);
+    arm_mat_init_f32(&auxD_2_1, 2, 1, auxD_2_1_mat);
+    arm_mat_init_f32(&auxX_2_1, 2, 1, auxX_2_1_mat);
+    arm_mat_init_f32(&auxK_2_1, 2, 1, auxK_2_1_mat);
+    arm_mat_init_f32(&auxW_2_1, 2, 1, auxW_2_1_mat);
     arm_mat_init_f32(&auxA_1_1, 1, 1, auxA_1_1_mat);
     arm_mat_init_f32(&auxB_1_1, 1, 1, auxB_1_1_mat);
     arm_mat_init_f32(&auxC_1_1, 1, 1, auxC_1_1_mat);
     for (uint8_t i = 0; i < 3; ++i) {
-        uint8_t X_mat_offset = i*3;
+        uint8_t X_mat_offset = i*2;
         // Predict Equations
 
         /* Set current state to respective coordinate axis */
-        arm_mat_init_f32(&kf->X, 3, 1, kf->x_mat+X_mat_offset);
+        arm_mat_init_f32(&kf->X, 2, 1, kf->x_mat+X_mat_offset);
         arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat+i);
-        arm_mat_init_f32(&kf->W, 3, 1, kf->w_mat+X_mat_offset);
+
+        float32_t W_var = box_muller(0, kf->acc_var[i]);
+        arm_mat_scale_f32(&kf->G, W_var, &auxW_2_1);
 
         /* G*ak: Update measured acceleration disturbance matrix */
         // conversion for gs to m/s^2
-        arm_mat_scale_f32(&kf->G, acc[i]*9.80665, &auxA_3_1); // G*ak 3x1
+        arm_mat_scale_f32(&kf->G, acc[i]*9.80665, &auxA_2_1); // G*ak 3x1
 
         /* A*x_k-1k-1: Update process matrix */
-        arm_mat_mult_f32(&kf->A, &kf->X, &auxB_3_1); // A*X 3x1
+        arm_mat_mult_f32(&kf->A, &kf->X, &auxB_2_1); // A*X 3x1
 
         /* sigma*W_k: Update position measurement noise matrix */
-        arm_mat_scale_f32(&kf->W, 1, &auxC_3_1); // W*1 3x1
+        arm_mat_scale_f32(&auxW_2_1, 1, &auxC_2_1); // W*1 3x1
 
         /* x_kk-1= A*x_k-1k-1 + G*ak + W */
-        arm_mat_add_f32(&auxB_3_1, &auxA_3_1, &auxD_3_1); // A*X + G*ak
-        arm_mat_add_f32(&auxD_3_1, &auxC_3_1, &auxX_3_1); //X = A*X + G*ak + W*sigma
+        arm_mat_add_f32(&auxB_2_1, &auxA_2_1, &auxD_2_1); // A*X + G*ak
+        arm_mat_add_f32(&auxD_2_1, &auxC_2_1, &auxX_2_1); //X = A*X + G*ak + W*sigma
 
         /*P_kk-1= APA_T + Qk */
-        arm_mat_trans_f32(&kf->A, &auxA_3_3);       // A_t 3x3
-        arm_mat_mult_f32(&kf->P, &auxA_3_3, &auxB_3_3); // P*A_t
-        arm_mat_mult_f32(&kf->A, &auxB_3_3, &auxC_3_3); // A*P*A_t
-        arm_mat_add_f32(&auxC_3_3, &kf->Q, &auxP_3_3);  // P = A*P*A_t + Q 3x3
+        arm_mat_trans_f32(&kf->A, &auxA_2_2);       // A_t 3x3
+        arm_mat_mult_f32(&kf->P, &auxA_2_2, &auxB_2_2); // P*A_t
+        arm_mat_mult_f32(&kf->A, &auxB_2_2, &auxC_2_2); // A*P*A_t
+        arm_mat_add_f32(&auxC_2_2, &kf->Q, &auxP_2_2);  // P = A*P*A_t + Q 3x3
 
         // Update Equations
 
         /* Kalman gain: K = P_kk-1*Ht_k*S^-1_k */
-        arm_mat_trans_f32(&kf->H, &auxA_3_1);   // H_t
-        arm_mat_mult_f32(&auxP_3_3, &auxA_3_1, &auxB_3_1);   // PH_t 3x1
+        arm_mat_trans_f32(&kf->H, &auxA_2_1);   // H_t
+        arm_mat_mult_f32(&auxP_2_2, &auxA_2_1, &auxB_2_1);   // PH_t 3x1
 
-        arm_mat_mult_f32(&kf->H, &auxB_3_1, &auxA_1_1); // HPH_t 1x1
+        arm_mat_mult_f32(&kf->H, &auxB_2_1, &auxA_1_1); // HPH_t 1x1
         arm_mat_add_f32(&auxA_1_1, &kf->R, &auxB_1_1); // S = HPH_t + R 1x1
         arm_mat_inverse_f32(&auxB_1_1, &auxC_1_1); // S^-1
 
-        arm_mat_mult_f32(&auxA_3_1, &auxC_1_1, &auxC_3_1); // H_t * S^-1 3x1
-        arm_mat_mult_f32(&auxP_3_3, &auxC_3_1, &auxK_3_1); // K = P * H^t * S^-1
+        arm_mat_mult_f32(&auxA_2_1, &auxC_1_1, &auxC_2_1); // H_t * S^-1 3x1
+        arm_mat_mult_f32(&auxP_2_2, &auxC_2_1, &auxK_2_1); // K = P * H^t * S^-1
 
         /* A posteriori state estimate */
-        arm_mat_mult_f32(&auxK_3_1, &kf->H, &auxA_3_3); // KH
-        arm_mat_sub_f32(&kf->I, &auxA_3_3, &auxB_3_3); // I-KH
-        arm_mat_mult_f32(&auxB_3_3, &auxX_3_1, &auxA_3_1); // (I-KH)*X
+        arm_mat_mult_f32(&auxK_2_1, &kf->H, &auxA_2_2); // KH
+        arm_mat_sub_f32(&kf->I, &auxA_2_2, &auxB_2_2); // I-KH
+        arm_mat_mult_f32(&auxB_2_2, &auxX_2_1, &auxA_2_1); // (I-KH)*X
 
-        arm_mat_mult_f32(&auxA_3_3, &auxX_3_1, &auxB_3_1); // KHX
-        arm_mat_mult_f32(&auxK_3_1, &kf->V, &auxC_3_1); // Kv
-        arm_mat_add_f32(&auxA_3_1, &auxB_3_1, &auxD_3_1); // (I-KH)*X + KHX
-        arm_mat_add_f32(&auxD_3_1, &auxC_3_1, &kf->X); // (I-KH)*X + KHX + Kv
+        arm_mat_mult_f32(&auxA_2_2, &auxX_2_1, &auxB_2_1); // KHX
+        arm_mat_mult_f32(&auxK_2_1, &kf->V, &auxC_2_1); // Kv
+        arm_mat_add_f32(&auxA_2_1, &auxB_2_1, &auxD_2_1); // (I-KH)*X + KHX
+        arm_mat_add_f32(&auxD_2_1, &auxC_2_1, &kf->X); // (I-KH)*X + KHX + Kv
 
         /* A posteriori estimate cov */
-        arm_mat_mult_f32(&auxB_3_3, &auxP_3_3, &kf->P); // (I-KH)*P
+        arm_mat_mult_f32(&auxB_2_2, &auxP_2_2, &kf->P); // (I-KH)*P
     }
 }
 

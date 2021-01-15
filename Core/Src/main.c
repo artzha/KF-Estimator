@@ -140,11 +140,11 @@ int main(void)
 //          computeAngles(&s);
           normalizeGravity(&s, mpu_data.accel);
           kfUpdate(&kf, mpu_data.accel);
-          if (num_computations >= 100) {
+          if (num_computations >= 10) {
               // print estimated KF position
               printf("x: %i ", (int32_t) (kf.x_mat[0]*100)); // in units of cm
-              printf("y: %i ", (int32_t) (kf.x_mat[3]*100));
-              printf("z: %i\n\r", (int32_t) (kf.x_mat[6]*100));
+              printf("y: %i ", (int32_t) (kf.x_mat[2]*100));
+              printf("z: %i\n\r", (int32_t) (kf.x_mat[4]*100));
 //              printf("%i ", (int32_t) (s.roll));
 //              printf("%i ", (int32_t) (s.pitch));
 //              printf("%i\r\n", (int32_t) (s.yaw));

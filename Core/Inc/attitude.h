@@ -11,26 +11,21 @@
 
 #include "arm_math.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 #define Q_COVAR         0.0001
-#define R_COVAR         0.00005    // estimate of std dev for position meas
-#define A_MAT_SZ        9
-#define X_MAT_SZ        9
-#define G_MAT_SZ        3
-#define H_MAT_SZ        9
+#define R_COVAR         0.00001    // estimate of std dev for position meas
+#define A_MAT_SZ        4
+#define X_MAT_SZ        6
+#define G_MAT_SZ        2
+#define H_MAT_SZ        2
 #define Z_MAT_SZ        3
-#define W_MAT_SZ        9
+#define W_MAT_SZ        6
 #define V_MAT_SZ        3
-#define P_MAT_SZ        9
-#define Q_MAT_SZ        9
+#define P_MAT_SZ        4
+#define Q_MAT_SZ        4
 #define R_MAT_SZ        1
-#define I_MAT_SZ        9
-#define ACC_X_BIAS      -0.00432859
-#define ACC_Y_BIAS      0.000365862
-#define ACC_Z_BIAS      0.00188605
-#define ACC_X_VAR       0.000006004
-#define ACC_Y_VAR       0.000004081
-#define ACC_Z_VAR       0.000013743
+#define I_MAT_SZ        4
 
 typedef struct AttitudeState {
     float beta, step, filterBeta;
@@ -41,6 +36,8 @@ typedef struct AttitudeState {
 
 typedef struct KalmanState {
     float32_t time;
+    float32_t acc_var[3];
+    float32_t acc_bias[3];
     float32_t x_mat[X_MAT_SZ]; // 3 variables for each axis
     float32_t a_mat[A_MAT_SZ];
     float32_t g_mat[G_MAT_SZ];
@@ -76,6 +73,8 @@ void normalizeGravity(AttitudeState *s, float* acc);
 void madgwickUpdate(AttitudeState *s, float* acc, float* gyro, uint8_t sz);
 
 void computeAngles(AttitudeState *s);
+
+float32_t box_muller(float32_t m, float32_t s);
 
 float invSqrt(float x);
 
