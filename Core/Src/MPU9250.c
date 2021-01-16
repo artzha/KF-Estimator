@@ -220,6 +220,13 @@ MPU9250_Result_t MPU9250_Initialize(MPU9250_CONFIG_t *MPU9250_CONFIG){
         return MPU9250_RESULT_FAIL;
     }
 
+    /* MPU9250 Turn on Gyroscope DLPF */
+    cmdbuf[0] = MPU9250_CONFIG;
+    cmdbuf[1] = 0x01;
+    HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 0);
+    res = HAL_SPI_TransmitReceive(MPU9250_CONFIG->hspi,cmdbuf,cmdbuf,2,0xFFFF);
+    HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 1);
+
     return MPU9250_RESULT_OK;
 }
 
@@ -257,6 +264,12 @@ MPU9250_Result_t MPU9250_Config(MPU9250_CONFIG_t *MPU9250_CONFIG){
     res = HAL_SPI_TransmitReceive(MPU9250_CONFIG->hspi,cmdbuf,cmdbuf,2,0xFFFF);
     HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 1);
 
+    cmdbuf[0] = MPU9250_ACCEL_CONFIG_2;
+    cmdbuf[1] = 0x01; // CHANGED: BW 184Hz
+    HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 0);
+    res = HAL_SPI_TransmitReceive(MPU9250_CONFIG->hspi,cmdbuf,cmdbuf,2,0xFFFF);
+    HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 1);
+
     if (res != HAL_OK) {
         return MPU9250_RESULT_FAIL;
     }
@@ -287,7 +300,7 @@ MPU9250_Result_t MPU9250_Config(MPU9250_CONFIG_t *MPU9250_CONFIG){
     }
 
     cmdbuf[0] = MPU9250_GYRO_CONFIG;
-    cmdbuf[1] = cmdbuf[1] | MPU9250_CONFIG->ACCEL_SCALE;
+    cmdbuf[1] = cmdbuf[1] | MPU9250_CONFIG->ACCEL_SCALE & ~0b11; // CHANGED: bypasses dlpf
     HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 0);
     res = HAL_SPI_TransmitReceive(MPU9250_CONFIG->hspi,cmdbuf,cmdbuf,2,0xFFFF);
     HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 1);
@@ -295,6 +308,13 @@ MPU9250_Result_t MPU9250_Config(MPU9250_CONFIG_t *MPU9250_CONFIG){
     if (res != HAL_OK) {
         return MPU9250_RESULT_FAIL;
     }
+
+    // CHANGED: Sets DLPF config value for gyro
+    cmdbuf[0] = MPU9250_CONFIG;
+    cmdbuf[1] = 0x01;
+    HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 0);
+    res = HAL_SPI_TransmitReceive(MPU9250_CONFIG->hspi,cmdbuf,cmdbuf,2,0xFFFF);
+    HAL_GPIO_WritePin(MPU9250_CONFIG->GPIOx,MPU9250_CONFIG->GPIO_PIN , 1);
 
     /* AK8963_Get_MAG_Sensitivity ---------------------------------------------------------*/
     /* AK8963_Set_Fuse_access_mode ---------------------------------------------------------*/

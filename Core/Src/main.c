@@ -137,14 +137,17 @@ int main(void)
       if (computeAttitude) {
           MPU9250_Update6DOF(&mpu_config, &mpu_data);
           madgwickUpdate(&s, mpu_data.accel, mpu_data.gyro, 3);
-//          computeAngles(&s);
+          computeAngles(&s);
           normalizeGravity(&s, mpu_data.accel);
           kfUpdate(&kf, mpu_data.accel);
           if (num_computations >= 10) {
               // print estimated KF position
-              printf("x: %i ", (int32_t) (kf.x_mat[0]*100)); // in units of cm
-              printf("y: %i ", (int32_t) (kf.x_mat[2]*100));
-              printf("z: %i\n\r", (int32_t) (kf.x_mat[4]*100));
+//              printf("x: %i ", (int32_t) (kf.x_mat[0]*100)); // in units of cm
+//              printf("y: %i ", (int32_t) (kf.x_mat[2]*100));
+//              printf("z: %i\n\r", (int32_t) (kf.x_mat[4]*100));
+                printf("%i ", (int32_t) (kf.x_mat[0]*100)); // in units of cm
+                printf("%i ", (int32_t) (kf.x_mat[2]*100));
+                printf("%i \r\n", (int32_t) (kf.x_mat[4]*100));
 //              printf("%i ", (int32_t) (s.roll));
 //              printf("%i ", (int32_t) (s.pitch));
 //              printf("%i\r\n", (int32_t) (s.yaw));
@@ -153,7 +156,7 @@ int main(void)
 //                printf("z: %i\r\n", (int32_t) (mpu_data.accel[2]*1000));
 //                printf("%i ", (int32_t) (mpu_data.accel[0]*10000));
 //                printf("%i ", (int32_t) (mpu_data.accel[1]*10000));
-//                printf("%i\r\n", (int32_t) (mpu_data.accel[2]*10000));
+//                printf("%i \r\n", (int32_t) (mpu_data.accel[2]*10000));
 //                printf("gyro x: %i, ", (int32_t) (mpu_data.gyro[0]*1000));
 //                printf("gyro y: %i, ", (int32_t) (mpu_data.gyro[1]*1000));
 //                printf("gyro z: %i \n\r", (int32_t) (mpu_data.gyro[2]*1000));

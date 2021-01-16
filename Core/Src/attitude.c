@@ -13,7 +13,7 @@ void attitudeInit(AttitudeState *s, KalmanState* kf) {
     s->beta = sqrt(3.0/4) * 3.14159265358979 * (1.0/180.0);
     s->q0 = 1.0;
     s->q1 = s->q2 = s->q3 = 0.0;
-    s->step = 0.0000175;  // step for gradient descent found through testing
+    s->step = 0.0000185;  // step for gradient descent found through testing
     initKFMatrices(kf);
 }
 
@@ -24,12 +24,15 @@ void initKFMatrices(KalmanState* kf) {
     *  Each column represents x1, x2, x3 for their respective axis
     */
     kf->time = 0.001; // sample rate (s)
-    kf->acc_var[0] = 0.000006004;
-    kf->acc_var[1] = 0.000004081;
-    kf->acc_var[2] = 0.000013743;
-    kf->acc_bias[0]= -0.00432859;
-    kf->acc_bias[1]= 0.000365862;
-    kf->acc_bias[2]= 0.00188605;
+    kf->acc_var[0] = 0.000004117;
+    kf->acc_var[1] = 0.000004178;
+    kf->acc_var[2] = 0.000013638;
+//    kf->acc_bias[0]= 0.000233963;
+//    kf->acc_bias[1]= -0.00099799;
+//    kf->acc_bias[2]= 0.000854502;
+    kf->acc_bias[0]= 0.0005; // determined by measuring static acceleration >1std from mean
+    kf->acc_bias[1]= 0.0005; // TODO: figure out better way of measuring rest acc bias
+    kf->acc_bias[2]= 0.0005;
     float32_t t = kf->time;
     float32_t t2= t*t;
     float32_t t2d2      = t2/2.0; //precompute
@@ -99,7 +102,6 @@ void initKFMatrices(KalmanState* kf) {
     kf->q_mat[2] = t3d2;
     kf->q_mat[3] = t2;
     arm_mat_init_f32(&kf->Q, 2, 2, kf->q_mat);
-    arm_mat_scale_f32(&kf->Q, Q_COVAR, &kf->Q);
 
     // R Matrix
     kf->r_mat[0] = R_COVAR;
@@ -114,44 +116,13 @@ void initKFMatrices(KalmanState* kf) {
     arm_mat_init_f32(&kf->I, 2, 2, kf->i_mat);
 }
 
-/* code borrowed from ftp://ftp.taygeta.com/pub/c/boxmuller.c */
-float32_t box_muller(float32_t m, float32_t s)   /* normal random variate generator */
-{
-    /* mean m, standard deviation s */
-    float32_t x1, x2, w, _y1;
-    static float32_t y2;
-    static int use_last = 0;
-
-    if (use_last)               /* use value from previous call */
-    {
-        _y1 = y2;
-        use_last = 0;
-    }
-    else
-    {
-        do {
-            x1 = 2.0 * drand48() - 1.0;
-            x2 = 2.0 * drand48() - 1.0;
-            w = x1 * x1 + x2 * x2;
-        } while ( w >= 1.0 );
-
-        w = sqrt( (-2.0 * log( w ) ) / w );
-        _y1 = x1 * w;
-        y2 = x2 * w;
-        use_last = 1;
-    }
-
-    float32_t result = ( m + _y1 * s );
-
-    return result;
-}
-
 void kfUpdate(KalmanState *kf, float* acc) {
     // Update Equations
     float32_t auxA_2_2_mat[4] = {0};
     float32_t auxB_2_2_mat[4] = {0};
     float32_t auxC_2_2_mat[4] = {0};
     float32_t auxP_2_2_mat[4] = {0};
+    float32_t auxQ_2_2_mat[4] = {0};
     float32_t auxA_2_1_mat[2] = {0};
     float32_t auxB_2_1_mat[2] = {0};
     float32_t auxC_2_1_mat[2] = {0};
@@ -168,10 +139,12 @@ void kfUpdate(KalmanState *kf, float* acc) {
     arm_matrix_instance_f32 auxX_2_1, auxP_2_2;
     arm_matrix_instance_f32 auxK_2_1;
     arm_matrix_instance_f32 auxW_2_1;
+    arm_matrix_instance_f32 auxQ_2_2;
     arm_mat_init_f32(&auxA_2_2, 2, 2, auxA_2_2_mat);
     arm_mat_init_f32(&auxB_2_2, 2, 2, auxB_2_2_mat);
     arm_mat_init_f32(&auxC_2_2, 2, 2, auxC_2_2_mat);
     arm_mat_init_f32(&auxP_2_2, 2, 2, auxP_2_2_mat);
+    arm_mat_init_f32(&auxQ_2_2, 2, 2, auxQ_2_2_mat);
     arm_mat_init_f32(&auxA_2_1, 2, 1, auxA_2_1_mat);
     arm_mat_init_f32(&auxB_2_1, 2, 1, auxB_2_1_mat);
     arm_mat_init_f32(&auxC_2_1, 2, 1, auxC_2_1_mat);
@@ -190,12 +163,27 @@ void kfUpdate(KalmanState *kf, float* acc) {
         arm_mat_init_f32(&kf->X, 2, 1, kf->x_mat+X_mat_offset);
         arm_mat_init_f32(&kf->V, 1, 1, kf->v_mat+i);
 
-        float32_t W_var = box_muller(0, kf->acc_var[i]);
-        arm_mat_scale_f32(&kf->G, W_var, &auxW_2_1);
+        /* Scale G and Q matrices with normal distribution based on acc var */
+        float32_t GQ_var = box_muller(0, kf->acc_var[i]);
+        arm_mat_scale_f32(&kf->G, GQ_var, &auxW_2_1);
+        arm_mat_scale_f32(&kf->Q, GQ_var, &auxQ_2_2);
 
-        /* G*ak: Update measured acceleration disturbance matrix */
+        /* G*ak: Update measured acceleration disturbance matrix
+         *
+         * Additionally implements zero velocity correction. Inspiration taken
+         * from article:
+         * https://scholarworks.uvm.edu/cgi/viewcontent.cgi?article=1449&context=graddis
+         *
+         */
         // conversion for gs to m/s^2
-        arm_mat_scale_f32(&kf->G, acc[i]*9.80665, &auxA_2_1); // G*ak 3x1
+        float32_t actual_acc = 0;
+        if (acc[i] > -kf->acc_bias[i] && acc[i] < kf->acc_bias[i]) {
+            actual_acc = 0;
+            kf->x_mat[X_mat_offset+1] = 0;
+        } else {
+            actual_acc = acc[i]*9.80665;
+        }
+        arm_mat_scale_f32(&kf->G, actual_acc, &auxA_2_1); // G*ak 3x1
 
         /* A*x_k-1k-1: Update process matrix */
         arm_mat_mult_f32(&kf->A, &kf->X, &auxB_2_1); // A*X 3x1
@@ -211,7 +199,7 @@ void kfUpdate(KalmanState *kf, float* acc) {
         arm_mat_trans_f32(&kf->A, &auxA_2_2);       // A_t 3x3
         arm_mat_mult_f32(&kf->P, &auxA_2_2, &auxB_2_2); // P*A_t
         arm_mat_mult_f32(&kf->A, &auxB_2_2, &auxC_2_2); // A*P*A_t
-        arm_mat_add_f32(&auxC_2_2, &kf->Q, &auxP_2_2);  // P = A*P*A_t + Q 3x3
+        arm_mat_add_f32(&auxC_2_2, &auxQ_2_2, &auxP_2_2);  // P = A*P*A_t + Q 3x3
 
         // Update Equations
 
@@ -273,6 +261,38 @@ float invSqrt(float x) {
     y = y * (1.5f - (halfx * y * y));
     y = y * (1.5f - (halfx * y * y));
     return y;
+}
+
+/* code borrowed from ftp://ftp.taygeta.com/pub/c/boxmuller.c */
+float32_t box_muller(float32_t m, float32_t s)   /* normal random variate generator */
+{
+    /* mean m, standard deviation s */
+    float32_t x1, x2, w, _y1;
+    static float32_t y2;
+    static int use_last = 0;
+
+    if (use_last)               /* use value from previous call */
+    {
+        _y1 = y2;
+        use_last = 0;
+    }
+    else
+    {
+        do {
+            x1 = 2.0 * drand48() - 1.0;
+            x2 = 2.0 * drand48() - 1.0;
+            w = x1 * x1 + x2 * x2;
+        } while ( w >= 1.0 );
+
+        w = sqrt( (-2.0 * log( w ) ) / w );
+        _y1 = x1 * w;
+        y2 = x2 * w;
+        use_last = 1;
+    }
+
+    float32_t result = ( m + _y1 * s );
+
+    return result;
 }
 
 void normalizeGravity(AttitudeState *s, float* acc) {

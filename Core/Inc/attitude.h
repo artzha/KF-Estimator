@@ -36,6 +36,7 @@ typedef struct AttitudeState {
 
 typedef struct KalmanState {
     float32_t time;
+    float32_t pos_var[3];
     float32_t acc_var[3];
     float32_t acc_bias[3];
     float32_t x_mat[X_MAT_SZ]; // 3 variables for each axis
@@ -60,6 +61,12 @@ typedef struct KalmanState {
     arm_matrix_instance_f32 Q;  // Process Noise Covariance
     arm_matrix_instance_f32 R;  // Innovation Covariance Noise
     arm_matrix_instance_f32 I;  // Identity Matrix
+
+    /* Variables for removing velocity drift rate */
+    uint32_t num_samples_ns; // num of samples during non stationary
+    uint8_t is_stationary; // boolean var if sensor was stationary
+    float32_t prev_vel; // velocity at start of non stationary period
+    float32_t drift_rate; // number of samples during non stationary period
 } KalmanState;
 
 void initKFMatrices(KalmanState* kf);
