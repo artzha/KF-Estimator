@@ -11,3 +11,9 @@ https://scholarworks.uvm.edu/cgi/viewcontent.cgi?article=1449&context=graddis
 Helper link on Quaternion Rotations:
 
 http://www.chrobotics.com/library/understanding-quaternions
+
+Performance Testing:
+
+Ten second test on following linear square shaped path
+
+![Square test](./Scripts/Square-Test.png)
