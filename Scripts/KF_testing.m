@@ -35,9 +35,9 @@ hold off
 
 position_data = readmatrix("screenlog.txt");
 target_pos = [0 0;
-              15 0;
-              15 -15
-              0 -15
+              14 0;
+              14 -14
+              0 -14
               0 0];
 hold on
 title("Estimated position vs Target Position");
